@@ -77,9 +77,9 @@ _weitere Information zu Durable & Non-Durable Subscriptions_
 
 ![shared sub](doc/images/pubSubTopicShared.png)
     
-IBM MQ unterstützt zwei Methoden - durch die Verwendung geklonter (cloned) oder gemeinsam genutzter (shared) Subscriptions - um mehreren Subscribern Zugriff auf dieselbe Subscription zu gewähren. Was auf den ersten Blick, wie ein Widerspruch zum Pub/Sub Mechanismus aussieht, deckt einen praktischen Bedarf insbesondere von Anwendungen die mit mehreren Instanzen betrieben werden. Im Idealfall wird jede Nachricht von jeder Anwendung nur einmal verarbeitet. Werden für eine Anwendung mehrere Instanzen betrieben, würden in einem Pub/Sub-System die Nachricht n mal konsumiert und verarbeitet.
+IBM MQ unterstützt zwei Methoden - durch die Verwendung geklonter (cloned) oder gemeinsam genutzter (shared) Subscriptions - um mehreren Subscribern Zugriff auf dieselbe Subscription zu gewähren. Was auf den ersten Blick, wie ein Widerspruch zum Pub/Sub Mechanismus aussieht, deckt einen praktischen Bedarf insbesondere von Anwendungen die mit mehreren Instanzen betrieben werden. Werden für eine Anwendung mehrere Instanzen betrieben, würden in einem Pub/Sub-System die Nachricht n mal konsumiert und verarbeitet. Mittels geklonter oder shared Subscription wird hingegen jede Nachricht von jeder Anwendung nur einmal verarbeitet.
     
-Geklonte Subscriptions ermöglichen mehreren Verbrauchern in verschiedenen JVMs gleichzeitigen Zugriff auf die Subscription. Sie können nur bei durable Subscriptions aktiviert werden. Eine durable Subscription kann als geklont betrachtet werden, wenn ein oder mehrere Subscriber unter Angabe demselben Subscription Name erstellt wurden. Wird eine Nachricht auf dem Topic der Subscription veröffentlicht, wird eine Kopie dieser Nachricht an die Subscription gesendet. Die Nachricht steht jedem der Subscriber zur Verfügung, wird aber nur von einem empfangen.
+Geklonte Subscriptions sind eine IBM MQ Erweiterung, die mehreren Verbrauchern in verschiedenen JVMs gleichzeitigen Zugriff auf die Subscription ermöglicht. Sie können nur bei durable Subscriptions aktiviert werden. Eine durable Subscription kann als geklont betrachtet werden, wenn ein oder mehrere Subscriber unter Angabe demselben Subscription Name erstellt wurden. Wird eine Nachricht auf dem Topic der Subscription veröffentlicht, wird eine Kopie dieser Nachricht an die Subscription gesendet. Die Nachricht steht jedem der Subscriber zur Verfügung, wird aber nur von einem empfangen.
 
 Mit JMS 2.0 wurden shared Subscriptions eingeführt, die es mehreren Subscribern einer Topic Subscription ermöglichen, eine Nachrichten gemeinsam zu nutzen. Jede Nachricht aus der Subscription wird anstatt allen nur einem Subscriber zugestellt. Shared Subscriptions können sowohl für durable als auch non-durable Subscriptions erstellt werden.
 
@@ -179,6 +179,10 @@ _Dead Letter Queues_ sind normale _local queues_, die genau wie diese erzeugt we
 ```mqsc
 DEFINE QLOCAL(QUEUE.DEAD.LETTER)
 ALTER QMGR DEADQ('QUEUE.DEAD.LETTER')
+
+ALTER QLOCAL(DEV.QUEUE.1) BOTHRESH(2) BOQNAME(QUEUE.DEAD.LETTER)
+ALTER QLOCAL(DEV.QUEUE.2) BOTHRESH(2) BOQNAME(QUEUE.DEAD.LETTER)
+ALTER QLOCAL(DEV.QUEUE.3) BOTHRESH(2) BOQNAME(QUEUE.DEAD.LETTER)
 ``` 
 
 ### 3.2 Topic erstellen
@@ -282,7 +286,7 @@ Für einen Consumer muss zusätzlich eine _jmsActivationSpec_ in der `server.xml
 
 #### 4.2.2 Topic Konfiguration
 
-Die Konfiguration für eine Queue erfolgt analog. Statt der _jmsConnectionFactory_ und der _jmsQueue_ muss eine _jmsTopicConnectionFactory_ und ein _jmsTopic_ definiert werden.
+Die Konfiguration für ein Topic erfolgt analog zur Queue. Statt der _jmsConnectionFactory_ und der _jmsQueue_ muss eine _jmsTopicConnectionFactory_ und ein _jmsTopic_ definiert werden.
 
 ```xml
 <jmsTopicConnectionFactory jndiName="JMSTopicFactory">
@@ -511,6 +515,7 @@ public class DurableTopicConsumer implements MessageListener {
 ##### 4.3.3.2 Shared Subscription
 
 Neben der Konfiguration in der `server.xml` muss für eine _shared Subscription_ auch eine Konfiguration in der _Message Driven Bean_ erfolgen. Dies erfolgt analog zur _durable Subscription_ über die Annotation `@MessageDriven`.
+
 Um die _shared Subscription zu aktivieren wird die über die Annotation `@ActivationConfigProperties` die Property _sharedSubscription_ auf `TRUE` gesetzt. _Shared Subscriptions_ können sowohl _durable_ als auch _non-durable_ sein. Die Konfiguration erfolgt über die Property _subscriptionDurability_.
 
 ```java
