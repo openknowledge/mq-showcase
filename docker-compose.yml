@@ -9,6 +9,13 @@ services:
     - 1414:1414
     - 9443:9443
 
+  jaeger-server:
+    image: jaegertracing/all-in-one:1.18.1
+    ports:
+      - "16686:16686"
+    environment:
+      COLLECTOR_ZIPKIN_HTTP_PORT: 9411
+
   queue-producer:
     image: mq-showcase/queue-producer:0
     environment:
@@ -20,11 +27,17 @@ services:
       MQ_PASSWORD: passw0rd
       MQ_CLIENT_ID: queue-producer
       MQ_QUEUE: DEV.QUEUE.MESSAGES.ALIAS
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_SERVICE_NAME: queue-producer
+      JAEGER_REPORTER_LOG_SPANS: "true"
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
       WLP_LOGGING_CONSOLE_LOGLEVEL: audit
     ports:
     - 9080:9080
     depends_on:
     - mq-broker
+    - jaeger-server
 
   queue-consumer-1:
     image: mq-showcase/queue-consumer:0
@@ -37,9 +50,15 @@ services:
       MQ_PASSWORD: passw0rd
       MQ_CLIENT_ID: queue-consumer-1
       MQ_QUEUE: DEV.QUEUE.MESSAGES.1
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_SERVICE_NAME: queue-consumer-1
+      JAEGER_REPORTER_LOG_SPANS: "true"
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
       WLP_LOGGING_CONSOLE_LOGLEVEL: audit
     depends_on:
     - mq-broker
+    - jaeger-server
 
   queue-consumer-2:
     image: mq-showcase/queue-consumer:0
@@ -52,9 +71,15 @@ services:
       MQ_PASSWORD: passw0rd
       MQ_CLIENT_ID: queue-consumer-2
       MQ_QUEUE: DEV.QUEUE.MESSAGES.1
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_SERVICE_NAME: queue-consumer-2
+      JAEGER_REPORTER_LOG_SPANS: "true"
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
       WLP_LOGGING_CONSOLE_LOGLEVEL: audit
     depends_on:
     - mq-broker
+    - jaeger-server
 
   queue-consumer-3:
     image: mq-showcase/queue-consumer:0
@@ -67,9 +92,15 @@ services:
       MQ_PASSWORD: passw0rd
       MQ_CLIENT_ID: queue-consumer-3
       MQ_QUEUE: DEV.QUEUE.MESSAGES.1
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_SERVICE_NAME: queue-consumer-3
+      JAEGER_REPORTER_LOG_SPANS: "true"
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
       WLP_LOGGING_CONSOLE_LOGLEVEL: audit
     depends_on:
     - mq-broker
+    - jaeger-server
 
   topic-producer:
     image: mq-showcase/topic-producer:0
@@ -82,11 +113,17 @@ services:
       MQ_PASSWORD: passw0rd
       MQ_CLIENT_ID: topic-producer-1
       MQ_TOPIC: DEV.TOPIC.MESSAGES
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_SERVICE_NAME: topic-producer
+      JAEGER_REPORTER_LOG_SPANS: "true"
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
       WLP_LOGGING_CONSOLE_LOGLEVEL: audit
     ports:
     - 9081:9080
     depends_on:
     - mq-broker
+    - jaeger-server
 
   topic-consumer-nondurable:
     image: mq-showcase/topic-consumer:0
@@ -102,9 +139,15 @@ services:
       MQ_SUB_NAME: topic-consumer-nondurable
       MQ_SUB_DURABILITY: NonDurable
       MQ_SUB_SHARED: 'False'
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_SERVICE_NAME: topic-consumer-nondurable
+      JAEGER_REPORTER_LOG_SPANS: "true"
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
       WLP_LOGGING_CONSOLE_LOGLEVEL: audit
     depends_on:
     - mq-broker
+    - jaeger-server
 
   topic-consumer-durable:
     image: mq-showcase/topic-consumer:0
@@ -120,9 +163,15 @@ services:
       MQ_SUB_NAME: topic-consumer-durable
       MQ_SUB_DURABILITY: Durable
       MQ_SUB_SHARED: 'False'
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_SERVICE_NAME: topic-consumer-durable
+      JAEGER_REPORTER_LOG_SPANS: "true"
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
       WLP_LOGGING_CONSOLE_LOGLEVEL: audit
     depends_on:
     - mq-broker
+    - jaeger-server
 
   topic-consumer-shared-a:
     image: mq-showcase/topic-consumer:0
@@ -138,9 +187,15 @@ services:
       MQ_SUB_NAME: topic-consumer-shared
       MQ_SUB_DURABILITY: Durable
       MQ_SUB_SHARED: 'True'
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_SERVICE_NAME: topic-consumer-shared-a
+      JAEGER_REPORTER_LOG_SPANS: "true"
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
       WLP_LOGGING_CONSOLE_LOGLEVEL: audit
     depends_on:
     - mq-broker
+    - jaeger-server
 
   topic-consumer-shared-b:
     image: mq-showcase/topic-consumer:0
@@ -156,6 +211,12 @@ services:
       MQ_SUB_NAME: topic-consumer-shared
       MQ_SUB_DURABILITY: Durable
       MQ_SUB_SHARED: 'True'
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_SERVICE_NAME: topic-consumer-shared-b
+      JAEGER_REPORTER_LOG_SPANS: "true"
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
       WLP_LOGGING_CONSOLE_LOGLEVEL: audit
     depends_on:
     - mq-broker
+    - jaeger-server

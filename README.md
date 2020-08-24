@@ -5,6 +5,11 @@ eines IBM MQ Brokers und einer Reihe von JEE Anwendungen die JMS mit Hilfe des I
 als Maven Module zur Verfügung und werden als Docker Container bereitgestellt. Weitere Informationen zu den Grundlagen finden sich 
 [hier](PubSub.md).
 
+Um die Nachrichten, die zwischen den Anwendungen übertragen werden, nachverfolgen zu können, wurde der Showcase um einen 
+[Jaeger](https://www.jaegertracing.io) Server erweitert. Die Traces werden über 
+[MP OpenTracing](https://microprofile.io/project/eclipse/microprofile-opentracing) bereitgestellt, das sowohl in die Producer als Consumer 
+integriert wurde. 
+
 
 **relevante Features**
 
@@ -12,6 +17,9 @@ als Maven Module zur Verfügung und werden als Docker Container bereitgestellt. 
 * JMS-Integration in Open Liberty mit Hilfe des IBM MQ Resource Adapters
 * Queue/Topic Konfiguration über Environment-Variablen beim Start der Anwendung
 * Automatische Fehlerhandling mit Hilfe von Backout Queues
+* Integration von MP OpenTracing
+
+
 
 
 
@@ -62,21 +70,21 @@ $ docker-compose up
 Um den MQ Broker, den Queue Producer, drei Queue Consumer und den DLQ Consumer zu starten, muss man folgenden Befehl ausführen:
 
 ```shell script
-$ docker-compose up mq-broker queue-producer queue-consumer-1 queue-consumer-2 queue-consumer-3 dlq-consumer
+$ docker-compose up mq-broker jaeger-server queue-producer queue-consumer-1 queue-consumer-2 queue-consumer-3 dlq-consumer
 ```
 
 Um den MQ Broker, den Topic Producer, einen durable und einen non-durable Topic Consumer sowie den DLQ Consumer zu starten, muss man 
 folgenden Befehl ausführen:
 
 ```shell script
-$ docker-compose up mq-broker topic-producer topic-consumer-durable topic-consumer-nondurable dlq-consumer
+$ docker-compose up mq-broker jaeger-server topic-producer topic-consumer-durable topic-consumer-nondurable dlq-consumer
 ```
 
 Um den MQ Broker, den Topic Producer, zwei shared Topic Consumer sowie den DLQ Consumer zu starten, muss man 
 folgenden Befehl ausführen:
 
 ```shell script
-$ docker-compose up mq-broker topic-producer topic-consumer-shared-a topic-consumer-shared-b dlq-consumer
+$ docker-compose up mq-broker jaeger-server topic-producer topic-consumer-shared-a topic-consumer-shared-b dlq-consumer
 ```
 
 #### Schritt 3: Nachrichten Versenden und Empfangen
@@ -452,5 +460,136 @@ Um die _shared Subscription zu aktivieren wird die über die Annotation `@Activa
 })
 public class SharedTopicConsumer implements MessageListener {
   ...
+}
+```
+
+
+### Nachrichten mit OpenTracing und Jaeger verfolgen
+
+Tracing erlaubt es den Datenfluß über mehrere Systeme hinweg zu verfolgen und die Verarbeitungsdauer in einem System zu messen. Eine 
+Anfrage wird mit einem _Trace_ abgebildet. Darüber hinaus wird jeder Methodenaufruf innerhalb des Systems in einem _Span_ aufgezeichnet. Da
+es bei nachrichten-basierten Kommunikation keine direkte Verbindung zwischen den Producer und Consumer gibt, stellt Tracing eine einfache 
+und effektive Möglichkeit dar, den Weg einer Nachricht zu verfolgen und Abhängigkeiten zwischen lose gekoppelten Systemen zu erkennen. Die 
+Basis hierfür bilden der OpenTracing Standard und verteilte Tracing-Systeme wie Jaeger.
+
+![trace](doc/images/trace.png)
+
+[OpenTracing](http://opentracing.io/) ist ein neuer, offener Standard zur Ablaufverfolgung für verteilte Anwendungen. Entwickler mit 
+Erfahrung im Aufbau von großen Mikroservice Umgebungen, Wissen um die Notwendigkeit und Bedeutung des verteilten Tracings: Logging auf 
+Prozessebene und Monitoring von Metriken (Geschäftskennzahlen) sind in verteilten Systemen unverzichtbar, jedoch kann mit keinem der beiden
+Ansätze die Spuren in Form Aufrufen und Nachrichten rekonstruieren, die eine einzelne Transaktion in einem verteilten System hinterlässt.
+
+Die [MicroProfile OpenTracing](https://microprofile.io/project/eclipse/microprofile-opentracing) Spezifikation definiert das Verhalten und 
+eine API für den Zugriff auf ein OpenTracing-konformes Tracer-Objekt innerhalb einer Anwendung. Die Spezifikation legt fest, in welcher 
+Weise OpenTracing Spans für eingehende und ausgehende Anfragen automatisch erstellt werden. Die API definiert darüber hinaus, wie die 
+Ablaufverfolgung für bestimmte Endpunkte explizit deaktiviert oder aktiviert werden kann.
+
+[Jaeger](https://www.jaegertracing.io) ist ein verteiltes Tracing-System, das von Uber Technologies entwickelt und als Open Source Projekt 
+veröffentlicht wurde. Jaeger wird die für Überwachung und Fehlerbehebung in verteilten Systemen (insbesondere Mikroservice-Architekturen) 
+einschließlich verteilter Kontextpropagierung und Transaktionsüberwachung, Fehleranalyse, Abhängigkeitsanalyse sowie Performanz-und 
+Latenzoptimierung genutzt.
+
+Der Jaeger-Server stellt eine eigene UI zur Verfügung, die unter http://localhost:16681/ erreichbar ist. 
+
+Das Senden einer Nachricht durch einen `queue-producer` bzw. `topic-producer` und deren Konsumierung durch einen `queue-consumer` bzw. 
+`topic-consumer`, führt zur Generierung mehrerer Traces aus denen der Jaeger Server einen Abhängigkeitsgraphen erzeugt. Der erzeugte Graph 
+weist eine Verbindung zwischen den jeweils beteiligten Anwendungen aus. 
+
+![trace-diagramm](doc/images/tracingDiagramm.png)
+
+Hier werden alle Traces, die in den letzten 20 Minuten angefallen sind, in einem Dauer-Zeit Diagramm gezeichnet werden
+
+#### Implementierung
+
+Der `jaeger-client` wird über die folgenden Environment-Variable konfiguriert, die beim Start des Docker Containers übergeben werden:
+
+* `JAEGER_AGENT_HOST` Pfad zum Jaeger Host
+* `JAEGER_SERVICE_NAME` Name des Client
+* `JAEGER_REPORTER_LOG_SPANS` Ob der Span geloggt werden soll
+* `JAEGER_SAMPLER_TYPE` Art des Tracers
+
+Das `MP OpenTracing` legt fest, dass für jede Anfragen an eine JAX-RS Ressourcen automatisch ein _Span_ erzeugt wird, so das man sich als 
+Entwickler nicht weiter darum kümmern muss. Will man jedoch Traces für nachrichten-basierten Kommunikation erstellen muss dies manuell 
+erfolgen. 
+
+Um manuell einen _Span_ zu erzeugten, benötigt man ein _Tracer_. Diesen kann man sich via Dependency Injection in seine Klasse injizieren 
+lassen oder oder im Code über die Konfiguration `Configuration.fromEnv().getTracer()` abfragen. 
+
+Das Tracing beginnt mit der Erzeugung des _Spans_ (idealerweise direkt nach dem Methodenaufruf) und muss vor dem Verlassen der Methoden 
+auch wieder beendet werden. Da für jeden Methodenaufruf, ob lokal oder über das Netzwerk, ein neuer _Span_ erstellt werden muss, kann man
+die _Trace ID_, die jeder _Span_ enthält, weiterleiten. Mittels `tracer.activeSpan()` greift man auf den aktuellen _Span_ (in diesem Fall 
+auch _Parent-Span_ genannt) zu und erzeugt einen neuen _Child-Span_. Auf Basis der _Trace ID_ werden somit eine ganze Reihe von 
+_Child-Spans_ erzeugt, anhand derer sich der Datenfluß lückenlos nachvollziehen lässt.
+
+```java
+public class ClassToTrace {
+
+  @Inject
+  private Tracer tracer;
+
+  public void methodToTrace() {
+    Span span = tracer.buildSpan("method_to_trace")
+                      .asChildOf(tracer.activeSpan())
+                      .start();
+
+    //...
+
+    span.finish();
+  }
+}
+```
+
+Da das Erstellen und Beenden der _Spans_ für alle Methoden sehr ähnlich ist, kann der Code in einen _CDI-Interceptor_ auslagert werden. 
+
+```java
+@Tracing
+@Interceptor
+public class TracingInterceptor implements Serializable {
+
+  private static final long serialVersionUID = 1L;
+
+  private static final Logger LOG = LoggerFactory.getLogger(TracingInterceptor.class);
+
+  Tracer tracer =  Configuration.fromEnv().getTracer();
+
+  @AroundInvoke
+  public Object trace(InvocationContext ctx) throws Exception {
+
+    Message message = (Message)ctx.getParameters()[0];
+
+    Span span = createSpan(message);
+
+    Object proceed = ctx.proceed();
+
+    span.finish();
+
+    return proceed;
+  }
+
+  /**
+   * Die TraceID wird über die Header als Property weitergegeben. Jaeger nutzt die "uber-trace-id" property.
+   * Im JMS Standart sind keine Bindestriche in Headerproperties erlaubt. Deswegen müssen die Bindestriche durch
+   * "_$dash$_" ersetzt werden
+   */
+  private Span createSpan(final Message message) throws JMSException {
+    Map<String, String> map = new HashMap<>();
+    String traceID = message.getStringProperty("uber_$dash$_trace_$dash$_id");
+    map.put("uber-trace-id", traceID);
+
+    SpanContext spanContext = tracer.extract(Format.Builtin.TEXT_MAP, new TextMapExtractAdapter(map));
+
+    return tracer.buildSpan("on_message").asChildOf(spanContext).start();
+  }
+}
+```
+
+Um den Interceptor und somit das Tracing für eine Methode zu aktivieren, müssen mit der Annotation `@Tracing` annotatiert werden. 
+
+```java
+@Inherited
+@InterceptorBinding
+@Retention(RUNTIME)
+@Target({ METHOD, TYPE })
+public @interface Tracing {
 }
 ```

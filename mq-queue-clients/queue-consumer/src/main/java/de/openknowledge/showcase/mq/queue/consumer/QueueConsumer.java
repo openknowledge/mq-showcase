@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.MessageDriven;
+import javax.interceptor.Interceptors;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
@@ -28,6 +29,7 @@ import javax.json.bind.JsonbBuilder;
 /**
  * JMS consumer that receives messages from a queue. The queue is configured in the server.xml.
  */
+@Interceptors(TracingInterceptor.class)
 @MessageDriven
 public class QueueConsumer implements MessageListener {
 

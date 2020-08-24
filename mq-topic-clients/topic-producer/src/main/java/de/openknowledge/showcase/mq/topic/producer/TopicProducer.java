@@ -15,11 +15,14 @@
  */
 package de.openknowledge.showcase.mq.topic.producer;
 
+import io.opentracing.Tracer;
+import io.opentracing.contrib.jms2.TracingMessageProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.MessageProducer;
@@ -43,10 +46,14 @@ public class TopicProducer {
   @Resource(lookup = "JMSTopic")
   private Topic topic;
 
+  @Inject
+  Tracer tracer;
+
   public void send(final CustomMessage message) {
     try (Connection connection = jmsFactory.createConnection();
         Session session = connection.createSession();
-        MessageProducer producer = session.createProducer(topic)) {
+        MessageProducer messageProducer = session.createProducer(topic);
+        TracingMessageProducer producer = new TracingMessageProducer(messageProducer, tracer)) {
 
       String json = JsonbBuilder.create().toJson(message);
 

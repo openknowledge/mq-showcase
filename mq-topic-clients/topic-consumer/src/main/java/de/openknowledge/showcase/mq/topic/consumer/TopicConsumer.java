@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.MessageDriven;
+import javax.interceptor.Interceptors;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
@@ -29,6 +30,7 @@ import javax.json.bind.JsonbBuilder;
  * Non-durable JMS consumer that receives messages from a topic. The topic is configured in the server.xml.
  */
 @MessageDriven
+@Interceptors(TracingInterceptor.class)
 public class TopicConsumer implements MessageListener {
 
   private static final Logger LOG = LoggerFactory.getLogger(TopicConsumer.class);

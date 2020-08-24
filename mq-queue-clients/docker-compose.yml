@@ -1,6 +1,6 @@
 version: "3.7"
 services:
-  mq:
+  mq-broker:
     image: mq-showcase/mq-broker:0
     environment:
       LICENSE: "accept"
@@ -8,6 +8,13 @@ services:
     ports:
     - 1414:1414
     - 9443:9443
+
+  jaeger-server:
+    image: jaegertracing/all-in-one:1.18.1
+    ports:
+      - "16686:16686"
+    environment:
+      COLLECTOR_ZIPKIN_HTTP_PORT: 9411
 
   queue-producer:
     image: mq-showcase/queue-producer:0
@@ -20,11 +27,17 @@ services:
       MQ_PASSWORD: passw0rd
       MQ_CLIENT_ID: queue-producer-1
       MQ_QUEUE: DEV.QUEUE.MESSAGES.ALIAS
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_SERVICE_NAME: queue-producer
+      JAEGER_REPORTER_LOG_SPANS: "true"
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
       WLP_LOGGING_CONSOLE_LOGLEVEL: audit
     ports:
     - 9080:9080
     depends_on:
-    - mq
+    - mq-broker
+    - jaeger-server
 
   queue-consumer-1:
     image: mq-showcase/queue-consumer:0
@@ -37,9 +50,15 @@ services:
       MQ_PASSWORD: passw0rd
       MQ_CLIENT_ID: queue-consumer-1
       MQ_QUEUE: DEV.QUEUE.MESSAGES.1
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_SERVICE_NAME: queue-consumer-1
+      JAEGER_REPORTER_LOG_SPANS: "true"
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
       WLP_LOGGING_CONSOLE_LOGLEVEL: audit
     depends_on:
-    - mq
+    - mq-broker
+    - jaeger-server
 
   queue-consumer-2:
     image: mq-showcase/queue-consumer:0
@@ -52,9 +71,15 @@ services:
       MQ_PASSWORD: passw0rd
       MQ_CLIENT_ID: queue-consumer-2
       MQ_QUEUE: DEV.QUEUE.MESSAGES.1
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_SERVICE_NAME: queue-consumer-2
+      JAEGER_REPORTER_LOG_SPANS: "true"
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
       WLP_LOGGING_CONSOLE_LOGLEVEL: audit
     depends_on:
-    - mq
+    - mq-broker
+    - jaeger-server
 
   queue-consumer-3:
     image: mq-showcase/queue-consumer:0
@@ -67,6 +92,12 @@ services:
       MQ_PASSWORD: passw0rd
       MQ_CLIENT_ID: queue-consumer-3
       MQ_QUEUE: DEV.QUEUE.MESSAGES.1
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_SERVICE_NAME: queue-consumer-3
+      JAEGER_REPORTER_LOG_SPANS: "true"
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
       WLP_LOGGING_CONSOLE_LOGLEVEL: audit
     depends_on:
-    - mq
+    - mq-broker
+    - jaeger-server
