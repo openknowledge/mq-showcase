@@ -1,0 +1,161 @@
+version: "3.7"
+services:
+  mq-broker:
+    image: mq-showcase/mq-broker:0
+    environment:
+      LICENSE: "accept"
+      MQ_QMGR_NAME: "QM1"
+    ports:
+    - 1414:1414
+    - 9443:9443
+
+  queue-producer:
+    image: mq-showcase/queue-producer:0
+    environment:
+      MQ_CHANNEL: DEV.ADMIN.SVRCONN
+      MQ_QMANAGER: QM1
+      MQ_PORT: 1414
+      MQ_HOST: mq
+      MQ_USER: admin
+      MQ_PASSWORD: passw0rd
+      MQ_CLIENT_ID: queue-producer
+      MQ_QUEUE: DEV.QUEUE.MESSAGES.ALIAS
+      WLP_LOGGING_CONSOLE_LOGLEVEL: audit
+    ports:
+    - 9080:9080
+    depends_on:
+    - mq-broker
+
+  queue-consumer-1:
+    image: mq-showcase/queue-consumer:0
+    environment:
+      MQ_CHANNEL: DEV.ADMIN.SVRCONN
+      MQ_QMANAGER: QM1
+      MQ_PORT: 1414
+      MQ_HOST: mq
+      MQ_USER: admin
+      MQ_PASSWORD: passw0rd
+      MQ_CLIENT_ID: queue-consumer-1
+      MQ_QUEUE: DEV.QUEUE.MESSAGES.1
+      WLP_LOGGING_CONSOLE_LOGLEVEL: audit
+    depends_on:
+    - mq-broker
+
+  queue-consumer-2:
+    image: mq-showcase/queue-consumer:0
+    environment:
+      MQ_CHANNEL: DEV.ADMIN.SVRCONN
+      MQ_QMANAGER: QM1
+      MQ_PORT: 1414
+      MQ_HOST: mq
+      MQ_USER: admin
+      MQ_PASSWORD: passw0rd
+      MQ_CLIENT_ID: queue-consumer-2
+      MQ_QUEUE: DEV.QUEUE.MESSAGES.1
+      WLP_LOGGING_CONSOLE_LOGLEVEL: audit
+    depends_on:
+    - mq-broker
+
+  queue-consumer-3:
+    image: mq-showcase/queue-consumer:0
+    environment:
+      MQ_CHANNEL: DEV.ADMIN.SVRCONN
+      MQ_QMANAGER: QM1
+      MQ_PORT: 1414
+      MQ_HOST: mq
+      MQ_USER: admin
+      MQ_PASSWORD: passw0rd
+      MQ_CLIENT_ID: queue-consumer-3
+      MQ_QUEUE: DEV.QUEUE.MESSAGES.1
+      WLP_LOGGING_CONSOLE_LOGLEVEL: audit
+    depends_on:
+    - mq-broker
+
+  topic-producer:
+    image: mq-showcase/topic-producer:0
+    environment:
+      MQ_CHANNEL: DEV.ADMIN.SVRCONN
+      MQ_QMANAGER: QM1
+      MQ_PORT: 1414
+      MQ_HOST: mq
+      MQ_USER: admin
+      MQ_PASSWORD: passw0rd
+      MQ_CLIENT_ID: topic-producer-1
+      MQ_TOPIC: DEV.TOPIC.MESSAGES
+      WLP_LOGGING_CONSOLE_LOGLEVEL: audit
+    ports:
+    - 9081:9080
+    depends_on:
+    - mq-broker
+
+  topic-consumer-nondurable:
+    image: mq-showcase/topic-consumer:0
+    environment:
+      MQ_CHANNEL: DEV.ADMIN.SVRCONN
+      MQ_QMANAGER: QM1
+      MQ_HOST: mq
+      MQ_PORT: 1414
+      MQ_USER: admin
+      MQ_PASSWORD: passw0rd
+      MQ_TOPIC: DEV.TOPIC.MESSAGES
+      MQ_CLIENT_ID: topic-consumer-nondurable
+      MQ_SUB_NAME: topic-consumer-nondurable
+      MQ_SUB_DURABILITY: NonDurable
+      MQ_SUB_SHARED: 'False'
+      WLP_LOGGING_CONSOLE_LOGLEVEL: audit
+    depends_on:
+    - mq-broker
+
+  topic-consumer-durable:
+    image: mq-showcase/topic-consumer:0
+    environment:
+      MQ_CHANNEL: DEV.ADMIN.SVRCONN
+      MQ_QMANAGER: QM1
+      MQ_HOST: mq
+      MQ_PORT: 1414
+      MQ_USER: admin
+      MQ_PASSWORD: passw0rd
+      MQ_TOPIC: DEV.TOPIC.MESSAGES
+      MQ_CLIENT_ID: topic-consumer-durable
+      MQ_SUB_NAME: topic-consumer-durable
+      MQ_SUB_DURABILITY: Durable
+      MQ_SUB_SHARED: 'False'
+      WLP_LOGGING_CONSOLE_LOGLEVEL: audit
+    depends_on:
+    - mq-broker
+
+  topic-consumer-shared-a:
+    image: mq-showcase/topic-consumer:0
+    environment:
+      MQ_CHANNEL: DEV.ADMIN.SVRCONN
+      MQ_QMANAGER: QM1
+      MQ_HOST: mq
+      MQ_PORT: 1414
+      MQ_USER: admin
+      MQ_PASSWORD: passw0rd
+      MQ_TOPIC: DEV.TOPIC.MESSAGES
+      MQ_CLIENT_ID: topic-consumer-shared
+      MQ_SUB_NAME: topic-consumer-shared
+      MQ_SUB_DURABILITY: Durable
+      MQ_SUB_SHARED: 'True'
+      WLP_LOGGING_CONSOLE_LOGLEVEL: audit
+    depends_on:
+    - mq-broker
+
+  topic-consumer-shared-b:
+    image: mq-showcase/topic-consumer:0
+    environment:
+      MQ_CHANNEL: DEV.ADMIN.SVRCONN
+      MQ_QMANAGER: QM1
+      MQ_HOST: mq
+      MQ_PORT: 1414
+      MQ_USER: admin
+      MQ_PASSWORD: passw0rd
+      MQ_TOPIC: DEV.TOPIC.MESSAGES
+      MQ_CLIENT_ID: topic-consumer-shared
+      MQ_SUB_NAME: topic-consumer-shared
+      MQ_SUB_DURABILITY: Durable
+      MQ_SUB_SHARED: 'True'
+      WLP_LOGGING_CONSOLE_LOGLEVEL: audit
+    depends_on:
+    - mq-broker

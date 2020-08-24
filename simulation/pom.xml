@@ -4,17 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>de.openknowledge.showcase.mq</groupId>
-    <artifactId>mq-showcase</artifactId>
-    <name>MQ Showcase</name>
+    <groupId>de.openknowledge.showcase.mq.simulation</groupId>
+    <artifactId>simulation</artifactId>
     <version>0</version>
-    <packaging>pom</packaging>
 
     <modules>
-        <module>mq-broker</module>
-        <module>mq-queue-clients</module>
-        <module>mq-topic-clients</module>
-        <module>dlq-consumer</module>
-        <module>simulation</module>
+        <module>queue-simulation</module>
+        <module>topic-simulation</module>
     </modules>
 </project>

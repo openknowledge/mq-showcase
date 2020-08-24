@@ -1,0 +1,72 @@
+version: "3.7"
+services:
+  mq:
+    image: mq-showcase/mq-broker:0
+    environment:
+      LICENSE: "accept"
+      MQ_QMGR_NAME: "QM1"
+    ports:
+    - 1414:1414
+    - 9443:9443
+
+  queue-producer:
+    image: mq-showcase/queue-producer:0
+    environment:
+      MQ_CHANNEL: DEV.ADMIN.SVRCONN
+      MQ_QMANAGER: QM1
+      MQ_PORT: 1414
+      MQ_HOST: mq
+      MQ_USER: admin
+      MQ_PASSWORD: passw0rd
+      MQ_CLIENT_ID: queue-producer-1
+      MQ_QUEUE: DEV.QUEUE.MESSAGES.ALIAS
+      WLP_LOGGING_CONSOLE_LOGLEVEL: audit
+    ports:
+    - 9080:9080
+    depends_on:
+    - mq
+
+  queue-consumer-1:
+    image: mq-showcase/queue-consumer:0
+    environment:
+      MQ_CHANNEL: DEV.ADMIN.SVRCONN
+      MQ_QMANAGER: QM1
+      MQ_PORT: 1414
+      MQ_HOST: mq
+      MQ_USER: admin
+      MQ_PASSWORD: passw0rd
+      MQ_CLIENT_ID: queue-consumer-1
+      MQ_QUEUE: DEV.QUEUE.MESSAGES.1
+      WLP_LOGGING_CONSOLE_LOGLEVEL: audit
+    depends_on:
+    - mq
+
+  queue-consumer-2:
+    image: mq-showcase/queue-consumer:0
+    environment:
+      MQ_CHANNEL: DEV.ADMIN.SVRCONN
+      MQ_QMANAGER: QM1
+      MQ_PORT: 1414
+      MQ_HOST: mq
+      MQ_USER: admin
+      MQ_PASSWORD: passw0rd
+      MQ_CLIENT_ID: queue-consumer-2
+      MQ_QUEUE: DEV.QUEUE.MESSAGES.1
+      WLP_LOGGING_CONSOLE_LOGLEVEL: audit
+    depends_on:
+    - mq
+
+  queue-consumer-3:
+    image: mq-showcase/queue-consumer:0
+    environment:
+      MQ_CHANNEL: DEV.ADMIN.SVRCONN
+      MQ_QMANAGER: QM1
+      MQ_PORT: 1414
+      MQ_HOST: mq
+      MQ_USER: admin
+      MQ_PASSWORD: passw0rd
+      MQ_CLIENT_ID: queue-consumer-3
+      MQ_QUEUE: DEV.QUEUE.MESSAGES.1
+      WLP_LOGGING_CONSOLE_LOGLEVEL: audit
+    depends_on:
+    - mq
