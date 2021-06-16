@@ -1,0 +1,43 @@
+asyncapi: 2.0.0
+info:
+  title: JMS Topic Producer API
+  version: 0
+  description: A REST API to send messages via JMS to a MQ Broker
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  dev:
+    url: localhost:{port}
+    protocol: jms
+    description: Test broker
+    variables:
+      port:
+        description: Connection is available through port 1414.
+        default: 1414
+
+defaultContentType: plain/text
+
+channels:
+  DEV.TOPIC.MESSAGES:
+    publish:
+      summary: Publish messages to the MQ Broker
+      operationId: sendMessage
+      message:
+        name: Custom Message
+        payload:
+          $ref: "#/components/schemas/CustomMessage"
+
+components:
+  schemas:
+    CustomMessage:
+      type: object
+      required:
+        - text
+        - sender
+      properties:
+        text:
+          type: string
+        sender:
+          type: string
