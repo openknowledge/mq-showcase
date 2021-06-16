@@ -17,6 +17,12 @@ package de.openknowledge.showcase.mq.topic.producer;
 
 import io.opentracing.Tracer;
 import io.opentracing.contrib.jms2.TracingMessageProducer;
+import io.smallrye.asyncapi.spec.annotations.channel.ChannelItem;
+import io.smallrye.asyncapi.spec.annotations.message.Message;
+import io.smallrye.asyncapi.spec.annotations.operation.Operation;
+import io.smallrye.asyncapi.spec.annotations.parameter.Parameter;
+import io.smallrye.asyncapi.spec.annotations.parameter.Parameters;
+import io.smallrye.asyncapi.spec.annotations.schema.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +55,17 @@ public class TopicProducer {
   @Inject
   Tracer tracer;
 
+  @ChannelItem(
+      channel = "DEV.TOPIC.MESSAGES",
+      publish = @Operation(
+          description = "Publish messages to the MQ Broker",
+          operationId = "sendMessage",
+          message = @Message(
+            name = "Custom Message",
+            payload = @Schema(ref = "#/components/schemas/CustomMessage")
+          )
+      )
+  )
   public void send(final CustomMessage message) {
     try (Connection connection = jmsFactory.createConnection();
         Session session = connection.createSession();

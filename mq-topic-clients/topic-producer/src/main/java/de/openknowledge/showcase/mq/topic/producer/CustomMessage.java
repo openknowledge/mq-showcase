@@ -15,13 +15,18 @@
  */
 package de.openknowledge.showcase.mq.topic.producer;
 
+import io.smallrye.asyncapi.spec.annotations.schema.Schema;
+
 /**
  * A DTO that represents a custom message.
  */
+@Schema
 public class CustomMessage {
 
+  @Schema(required = true)
   private String text;
 
+  @Schema(required = true)
   private String sender;
 
   public CustomMessage() {
