@@ -29,6 +29,7 @@
 
         <version.jaeger>0.34.0</version.jaeger>
         <version.opentracing-jms>0.1.9</version.opentracing-jms>
+        <version.asyncapi>1.0.0-SNAPSHOT</version.asyncapi>
 
         <liberty.var.default.http.port>9080</liberty.var.default.http.port>
         <liberty.var.default.https.port>9443</liberty.var.default.https.port>
@@ -92,6 +93,13 @@
             <groupId>io.jaegertracing</groupId>
             <artifactId>jaeger-client</artifactId>
             <version>${version.jaeger}</version>
+        </dependency>
+
+        <!-- AsyncAPI -->
+        <dependency>
+            <groupId>io.smallrye</groupId>
+            <artifactId>smallrye-async-api-spec-api</artifactId>
+            <version>${version.asyncapi}</version>
         </dependency>
     </dependencies>
 
